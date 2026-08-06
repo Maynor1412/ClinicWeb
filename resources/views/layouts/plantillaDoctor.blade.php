@@ -539,7 +539,7 @@
         ========================================================== */
         :root {
             --acciones-panel-width: 330px;
-            --navbar-doctor-height: 72px;
+            --navbar-doctor-height: 60px;
         }
 
         #btnAccionesDoctor,
@@ -748,7 +748,7 @@
 </head>
 <body>
 
-<nav class="navbar navbar-modern navbar-expand-lg fixed-top shadow-sm">
+<nav class="navbar navbar-modern navbar-expand-lg fixed-top shadow-sm" id="navbarDoctorPrincipal">
     <div class="container-fluid">
         <!-- Logo -->
         <a class="navbar-brand d-flex align-items-center fw-bold text-white" href="{{ route('/') }}">
@@ -1043,6 +1043,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const body = document.body;
+        const navbarDoctor = document.getElementById('navbarDoctorPrincipal');
         const panel = document.getElementById('accionesDoctorPanel');
         const btnDesktop = document.getElementById('btnAccionesDoctor');
         const btnMobile = document.getElementById('btnAccionesDoctorMobile');
@@ -1054,6 +1055,21 @@
         }
 
         const botonesAbrir = [btnDesktop, btnMobile].filter(Boolean);
+
+        function sincronizarAlturaNavbar() {
+            if (!navbarDoctor || window.innerWidth < 992) {
+                return;
+            }
+
+            const alturaNavbar = Math.ceil(navbarDoctor.getBoundingClientRect().height);
+            document.documentElement.style.setProperty(
+                '--navbar-doctor-height',
+                alturaNavbar + 'px'
+            );
+        }
+
+        sincronizarAlturaNavbar();
+        window.addEventListener('load', sincronizarAlturaNavbar);
 
         function actualizarAtributos(estaAbierto) {
             panel.setAttribute('aria-hidden', String(!estaAbierto));
@@ -1116,6 +1132,8 @@
         });
 
         window.addEventListener('resize', function () {
+            sincronizarAlturaNavbar();
+
             if (!body.classList.contains('acciones-panel-abierto')) {
                 actualizarAtributos(false);
             }
