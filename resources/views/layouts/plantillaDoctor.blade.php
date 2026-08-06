@@ -637,6 +637,8 @@
             flex: 1;
             overflow-y: auto;
             padding: 0.75rem;
+            display: flex;
+            flex-direction: column;
         }
 
         .acciones-panel-list {
@@ -673,6 +675,70 @@
             background: rgba(255, 255, 255, 0.18);
             text-shadow: 0 0 7px rgba(255, 255, 255, 0.55);
             transform: translateX(3px);
+        }
+
+        /* Mensaje inspirador visible únicamente fuera del index */
+        .acciones-mensaje-card {
+            margin-top: auto;
+            padding: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.12);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        .acciones-mensaje-encabezado {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            margin-bottom: 0.7rem;
+            color: #ffffff;
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .acciones-mensaje-encabezado i {
+            font-size: 1rem;
+        }
+
+        .acciones-mensaje-texto {
+            min-height: 72px;
+            margin: 0;
+            color: #f2fffd;
+            font-size: 0.95rem;
+            line-height: 1.55;
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .acciones-mensaje-texto.cambiando {
+            opacity: 0;
+            transform: translateY(6px);
+        }
+
+        .acciones-mensaje-indicadores {
+            display: flex;
+            justify-content: center;
+            gap: 0.4rem;
+            margin-top: 0.75rem;
+        }
+
+        .acciones-mensaje-indicador {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.35);
+            transition: width 0.25s ease, border-radius 0.25s ease, background 0.25s ease;
+        }
+
+        .acciones-mensaje-indicador.activo {
+            width: 20px;
+            border-radius: 10px;
+            background: #ffffff;
         }
 
         .acciones-panel-body::-webkit-scrollbar {
@@ -984,6 +1050,29 @@
                 </li>
             @endif
         </ul>
+
+        @unless($doctorEnInicio)
+            <section class="acciones-mensaje-card"
+                     id="mensajeInspiradorCard"
+                     aria-labelledby="mensajeInspiradorTitulo">
+                <div class="acciones-mensaje-encabezado" id="mensajeInspiradorTitulo">
+                    <i class="bi bi-heart-pulse-fill" aria-hidden="true"></i>
+                    <span>Mensaje del día</span>
+                </div>
+
+                <p class="acciones-mensaje-texto"
+                   id="mensajeInspiradorDoctor"
+                   aria-live="polite">
+                    Cada paciente confía en tu conocimiento, atención y dedicación.
+                </p>
+
+                <div class="acciones-mensaje-indicadores" aria-hidden="true">
+                    <span class="acciones-mensaje-indicador activo"></span>
+                    <span class="acciones-mensaje-indicador"></span>
+                    <span class="acciones-mensaje-indicador"></span>
+                </div>
+            </section>
+        @endunless
     </div>
 </aside>
 
@@ -1138,6 +1227,65 @@
                 actualizarAtributos(false);
             }
         });
+
+        /* Rotación de mensajes inspiradores, únicamente cuando la tarjeta existe. */
+        const mensajeInspirador = document.getElementById('mensajeInspiradorDoctor');
+        const indicadoresMensaje = document.querySelectorAll('.acciones-mensaje-indicador');
+
+        if (mensajeInspirador) {
+            const mensajes = [
+                'Cada paciente confía en tu conocimiento, atención y dedicación.',
+                'Tu trabajo de hoy puede marcar una diferencia importante en la vida de alguien.',
+                'La excelencia médica también comienza con escuchar, orientar y acompañar.'
+            ];
+
+            let indiceMensaje = 0;
+            let intervaloMensajes = null;
+
+            function actualizarMensaje() {
+                mensajeInspirador.classList.add('cambiando');
+
+                window.setTimeout(function () {
+                    indiceMensaje = (indiceMensaje + 1) % mensajes.length;
+                    mensajeInspirador.textContent = mensajes[indiceMensaje];
+
+                    indicadoresMensaje.forEach(function (indicador, indice) {
+                        indicador.classList.toggle('activo', indice === indiceMensaje);
+                    });
+
+                    mensajeInspirador.classList.remove('cambiando');
+                }, 300);
+            }
+
+            function iniciarRotacionMensajes() {
+                if (intervaloMensajes !== null) {
+                    return;
+                }
+
+                intervaloMensajes = window.setInterval(actualizarMensaje, 6000);
+            }
+
+            function detenerRotacionMensajes() {
+                if (intervaloMensajes === null) {
+                    return;
+                }
+
+                window.clearInterval(intervaloMensajes);
+                intervaloMensajes = null;
+            }
+
+            iniciarRotacionMensajes();
+
+            document.addEventListener('visibilitychange', function () {
+                if (document.hidden) {
+                    detenerRotacionMensajes();
+                } else {
+                    iniciarRotacionMensajes();
+                }
+            });
+
+            window.addEventListener('beforeunload', detenerRotacionMensajes);
+        }
     });
 </script>
 
